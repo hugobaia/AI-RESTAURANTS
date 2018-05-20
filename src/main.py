@@ -26,13 +26,14 @@ print(tfidf_matrix.shape)
 cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
 
 #Construct a reverse map of indices and restaurant names
-indices = pd.Series(metadata.index, index=metadata['name']).drop_duplicates()
+filt_rests = metadata.drop_duplicates('expertise')
+indices = pd.Series(filt_rests.index, index=filt_rests['expertise']).drop_duplicates()
 
 # Function that takes in restaurant name as input and outputs most similar restaurants
 def get_recommendations(title, cosine_sim=cosine_sim):
     # Get the index of the restaurant that matches the title
     idx = indices[title]
-
+ 
     # Get the pairwsie similarity scores of all restaurants with that restaurant
     sim_scores = list(enumerate(cosine_sim[idx]))
 
@@ -42,22 +43,24 @@ def get_recommendations(title, cosine_sim=cosine_sim):
     # Get the scores of the 10 most similar restaurants
     sim_scores = sim_scores[1:11]
 
-    # Get the movie indices
+    # Get the restaurant indices
     rest_indices = [i[0] for i in sim_scores]
 
     # Return the top 10 most similar retaurants
     return metadata.iloc[rest_indices]
 
+q_restaurants = get_recommendations('Happy hour')
+
 # Calculate C
-C = metadata['rating'].mean()
+C = q_restaurants['rating'].mean()
 print(C)
 
 # Calculate the minimum number of votes required to be in the chart, m
-m = metadata['vote_count'].quantile(0.75)
+m = q_restaurants['vote_count'].quantile(0.75)
 print(m)
 
 # Filter out all qualified restaurants into a new DataFrame
-q_restaurants = get_recommendations('Barchef Pub').copy().loc[metadata['vote_count'] >= m]
+q_restaurants = q_restaurants.copy().loc[metadata['vote_count'] >= m]
 print(q_restaurants.shape)
 
 # Function that computes the weighted rating of each restaurant
@@ -72,5 +75,5 @@ q_restaurants['score'] = q_restaurants.apply(weighted_rating, axis=1)
 #Sort restaurants based on score calculated above
 q_restaurants = q_restaurants.sort_values('score', ascending=False)
 
-#Print the top 15 restaurants
+#Print the top 5 restaurants
 print(q_restaurants[['name', 'vote_count', 'rating', 'score']].head(5))
