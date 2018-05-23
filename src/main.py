@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
 # Load Movies Metadata
-metadata = pd.read_csv('data/restaurants.csv', low_memory=False)
+metadata = pd.read_csv('../data/restaurants.csv', low_memory=False)
 
 #Define a TF-IDF Vectorizer Object.
 tfidf = TfidfVectorizer()
@@ -29,14 +29,24 @@ cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
 filt_rests = metadata.drop_duplicates('expertise')
 indices = pd.Series(filt_rests.index, index=filt_rests['expertise']).drop_duplicates()
 
+#Function that takes in tag array as input and outputs restaurants that have at least 1 similar tag
+def get_similars(p_title):
+    arr = {}
+    i = 0;
+    for tag in p_title:
+        arr[i] = get_recommendations(tag)[['name', 'vote_count', 'rating', 'expertise']]
+        i = i+1
+    result = pd.concat(arr)
+    return result
+
 # Function that takes in restaurant name as input and outputs most similar restaurants
 def get_recommendations(title, cosine_sim=cosine_sim):
     # Get the index of the restaurant that matches the title
     idx = indices[title]
- 
+
     # Get the pairwsie similarity scores of all restaurants with that restaurant
     sim_scores = list(enumerate(cosine_sim[idx]))
-
+    
     # Sort the restaurants based on the similarity scores
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
@@ -69,6 +79,15 @@ def weighted_rating(x, m=m, C=C):
     R = x['rating']
     return (v/(v+m) * R) + (m/(m+v) * C)
 
+#Binary Jaccard works by Making Union/Intersection, is this case, in a person's Tags and a restaurant's Tags
+def jaccard_rating(rest):
+    result = 0
+    for i in tags:
+        for j in rest['expertise']:
+            if i == j:
+               result = result + 1
+    return result
+
 # Define a new feature 'score' and calculate its value with `weighted_rating()`
 q_restaurants['score'] = q_restaurants.apply(weighted_rating, axis=1)
 
@@ -77,3 +96,9 @@ q_restaurants = q_restaurants.sort_values('score', ascending=False)
 
 #Print the top 5 restaurants
 print(q_restaurants[['name', 'vote_count', 'rating', 'score']].head(5))
+
+#This is not working now becouse i the .csv does not have tags
+tags = ['Happy hour', 'Pub']
+#q_restaurants = get_similars(tags)
+#q_restaurants['score'] = q_restaurants.apply(jaccard_rating, axis=1)
+#print(q_restaurants[['name', 'vote_count', 'rating', 'score']].head(5))
