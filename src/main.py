@@ -82,10 +82,9 @@ def weighted_rating(x, m=m, C=C):
 #Binary Jaccard works by Making Union/Intersection, is this case, in a person's Tags and a restaurant's Tags
 def jaccard_rating(rest):
     result = 0
-    for i in tags:
-        for j in rest['expertise']:
-            if i == j:
-               result = result + 1
+    for i in Ptags:
+        if i == rest['expertise']:
+            result = result + 1
     return result
 
 # Define a new feature 'score' and calculate its value with `weighted_rating()`
@@ -97,8 +96,11 @@ q_restaurants = q_restaurants.sort_values('score', ascending=False)
 #Print the top 5 restaurants
 print(q_restaurants[['name', 'vote_count', 'rating', 'score']].head(5))
 
-#This is not working now becouse i the .csv does not have tags
-tags = ['Happy hour', 'Pub']
-#q_restaurants = get_similars(tags)
-#q_restaurants['score'] = q_restaurants.apply(jaccard_rating, axis=1)
-#print(q_restaurants[['name', 'vote_count', 'rating', 'score']].head(5))
+#This is not working now because the .csv does not have tags
+Rtags = ['Happy hour', 'Pub']
+Ptags = ['Pub', 'Happy Hour']
+#This returns a csv w all restaurants that have at least one of the tags on Rtags
+q_restaurants = get_similars(Rtags)
+q_restaurants['score'] = q_restaurants.apply(jaccard_rating, axis=1)
+q_restaurants = q_restaurants.sort_values('score', ascending=False)
+print(q_restaurants[['name', 'vote_count', 'rating', 'score']].head(5))
