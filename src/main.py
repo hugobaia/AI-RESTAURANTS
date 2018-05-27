@@ -1,3 +1,6 @@
+
+################# IMPORTS #################
+
 # Import Pandas
 import pandas as pd
 
@@ -6,6 +9,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Import linear_kernel
 from sklearn.metrics.pairwise import linear_kernel
+
+############################################
 
 # Load Movies Metadata
 metadata = pd.read_csv('data/restaurants.csv', low_memory=False)
@@ -49,7 +54,11 @@ def get_recommendations(title, cosine_sim=cosine_sim):
     # Return the top 10 most similar retaurants
     return metadata.iloc[rest_indices]
 
-q_restaurants = get_recommendations('Happy hour')
+#tags = ['Botecos', 'Pub']
+#for tag in tags:
+#    get_recommendations(tag)
+#print(q_restaurants)
+q_restaurants = get_recommendations('Botecos')
 
 # Calculate C
 C = q_restaurants['rating'].mean()
