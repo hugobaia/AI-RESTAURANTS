@@ -10,22 +10,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 # Import linear_kernel
 from sklearn.metrics.pairwise import linear_kernel
 
+import json
+
 ############################################
-
-############### FAKE DATA ####################
-
-
-
-
-
-###############################################
-    
-
 
 def getRestaurants():
 
     # Load Movies Metadata
-    metadata = pd.read_csv('../data/restaurants.csv', low_memory=False)
+    metadata = pd.read_csv('data/restaurants.csv', low_memory=False)
 
     #Define a TF-IDF Vectorizer Object.
     tfidf = TfidfVectorizer()
@@ -100,5 +92,5 @@ def getRestaurants():
     q_restaurants = q_restaurants.sort_values('score', ascending=False)
 
     #Print the top 5 restaurants
-    print(q_restaurants[['name', 'vote_count', 'rating', 'score']].head(5))
-    return 'Hello world'
+
+    return q_restaurants[['name', 'vote_count', 'rating', 'score']].head(5).to_json();
