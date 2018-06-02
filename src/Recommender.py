@@ -18,7 +18,12 @@ import Util
 
 ############################################
 
-def getRestaurants(tags, users):
+index = -1
+
+def getRestaurants(tags, users, usersPrice):
+
+    global index
+    index = 0
 
     # Load Movies Metadata
     metadata = pd.read_csv('data/restaurants.csv', low_memory=False)
@@ -51,8 +56,8 @@ def getRestaurants(tags, users):
     # Sort the restaurants based on the similarity scores
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
-    # Get the scores of the 10 most similar restaurants
-    sim_scores = sim_scores[1:11]
+    # Get the scores of the 30 most similar restaurants
+    sim_scores = sim_scores[1:31]
 
     # Get the restaurant indices
     rest_indices = [i[0] for i in sim_scores]
@@ -64,24 +69,38 @@ def getRestaurants(tags, users):
     C = q_restaurants['rating'].mean()
 
     # Calculate the minimum number of votes required to be in the chart, m
-    m = q_restaurants['vote_count'].quantile(0.4)
-
-    #print(q_restaurants['price_avg'].describe())
+    m = q_restaurants['vote_count'].quantile(0.2)
 
     # Filter out all qualified restaurants into a new DataFrame
     q_restaurants = q_restaurants.copy().loc[metadata['vote_count'] >= m]
+
+    def price_proximity(x):
+        price = x['price_avg']
+        return abs(price- int(usersPrice))
+
+    q_restaurants['price_proximity'] = q_restaurants.apply(price_proximity, axis=1)
     
-    i = -1
+    maxPrice = q_restaurants['price_proximity'].max()
+
     # Function that computes the weighted rating of each restaurant
-    def weighted_rating(x, m=m, C=C, i=i, users=users):
+    def weighted_rating(x, m=m, C=C, users=users, maxPrice=maxPrice):
         v = x['vote_count']
         R = x['rating']
+        price = x['price_proximity']
+        global index
 
-        i = i+1
-        votes = (((v/(v+m) * R) + (m/(m+v) * C)) / 5) * 0.3
-        similarity = (sim_scores[i][1] * 0.4)
-        location = Util.calculateDistanceScore(users, x) * 0.3
-        return (votes + similarity + location)
+        price_normalized = 0
+        if (maxPrice != 0):
+            price_normalized = 1 - (float(price) / float(maxPrice))
+
+        price_normalized = price_normalized * 0.3
+        votes = (((v/(v+m) * R) + (m/(m+v) * C)) / 5) * 0.1
+        similarity = (sim_scores[index][1] * 0.4)
+        location = Util.calculateDistanceScore(users, x) * 0.2
+
+        index = index+1
+
+        return (votes + similarity + location + price_normalized)
 
     # Define a new feature 'score' and calculate its value with `weighted_rating()`
     q_restaurants['score'] = q_restaurants.apply(weighted_rating, axis=1)
@@ -90,5 +109,4 @@ def getRestaurants(tags, users):
     q_restaurants = q_restaurants.sort_values('score', ascending=False)
 
     #Print the top 5 restaurants
-
-    return q_restaurants[['name']].head(5).to_json();
+    return q_restaurants[['name', 'score']].head(5).to_json();

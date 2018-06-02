@@ -11,7 +11,8 @@ def getRecommendations():
     dataDict = json.loads(data)
     users = dataDict["users"]
     tags = dataDict["tags"]
-    return Recommender.getRestaurants(tags, users)
+    price = dataDict["price"]
+    return Recommender.getRestaurants(tags, users, price)
  
 if __name__ == "__main__":
     app.run()
