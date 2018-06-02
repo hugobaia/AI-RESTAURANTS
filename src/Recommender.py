@@ -12,17 +12,33 @@ from sklearn.metrics.pairwise import linear_kernel
 
 ############################################
 
+############### FAKE DATA ####################
+
+
+
+
+
+###############################################
+    
+
+
 def getRestaurants():
 
     # Load Movies Metadata
-    metadata = pd.read_csv('data/restaurants.csv', low_memory=False)
+    metadata = pd.read_csv('../data/restaurants.csv', low_memory=False)
 
     #Define a TF-IDF Vectorizer Object.
     tfidf = TfidfVectorizer()
 
     #Replace NaN with an empty string
     metadata['expertise'] = metadata['expertise'].fillna('')
+    
+    def creatingNewRestaurant(tags):
+        metadata.loc[metadata.index.max() + 1] = tags
 
+    #Creating a sample restaurant with the tags we want
+    creatingNewRestaurant('Sushi Pizza')
+    
     #Construct the required TF-IDF matrix by fitting and transforming the data
     tfidf_matrix = tfidf.fit_transform(metadata['expertise'])
 
@@ -31,18 +47,15 @@ def getRestaurants():
 
     # Compute the cosine similarity matrix
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
-
+    
     #Construct a reverse map of indices and restaurant names
     filt_rests = metadata.drop_duplicates('expertise')
     indices = pd.Series(filt_rests.index, index=filt_rests['expertise']).drop_duplicates()
 
     # Function that takes in restaurant name as input and outputs most similar restaurants
-    def get_recommendations(title, cosine_sim=cosine_sim):
-        # Get the index of the restaurant that matches the title
-        idx = indices[title]
-    
+    def get_recommendations(cosine_sim=cosine_sim):
         # Get the pairwsie similarity scores of all restaurants with that restaurant
-        sim_scores = list(enumerate(cosine_sim[idx]))
+        sim_scores = list(enumerate(cosine_sim[metadata.index.max()]))
 
         # Sort the restaurants based on the similarity scores
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
@@ -60,7 +73,7 @@ def getRestaurants():
     #for tag in tags:
     #    get_recommendations(tag)
     #print(q_restaurants)
-    q_restaurants = get_recommendations('Botecos')
+    q_restaurants = get_recommendations()
 
     # Calculate C
     C = q_restaurants['rating'].mean()
