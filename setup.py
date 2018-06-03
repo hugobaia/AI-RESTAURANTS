@@ -6,6 +6,6 @@ setup(name='recommendus',
       author='Hugo Silva',
       author_email='hugotpa@gmail.com',
       url='https://www.python.org/community/sigs/current/distutils-sig',
-      install_requires=['Flask', 'pandas'],
+      install_requires=['Flask', 'numpy', 'pandas', 'geopy'],
       packages=find_packages(),
       )
