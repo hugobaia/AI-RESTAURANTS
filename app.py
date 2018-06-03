@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import request
 
-from src.Recommender import *
+#from src.Recommender import *
 import json
 
 app = Flask(__name__)
