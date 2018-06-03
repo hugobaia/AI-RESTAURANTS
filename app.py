@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import request
 
-import Recommender
+from src.Recommender import *
 import json
 
 app = Flask(__name__)
@@ -16,7 +16,7 @@ def getRecommendations():
     users = dataDict["users"]
     price = dataDict["price"]
 
-    return Recommender.getRestaurants(tags, users, price)
+    return getRestaurants(tags, users, price)
  
 if __name__ == "__main__":
     app.run()
